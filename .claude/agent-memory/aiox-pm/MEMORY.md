@@ -1,0 +1,1 @@
+- [EA360 MVP Deliverables](project_ea360_mvp.md) — 51 deliverables, 9 epics, PRD-traceable; canonical at docs/deliverables/MVP-DELIVERABLES.md

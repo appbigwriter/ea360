@@ -1,0 +1,1 @@
+- [EA360 Schema](project_ea360_schema.md) — table groups, RLS multi-tenant strategy, 3-migration layout, prod-apply boundary

@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EA360 — Briefing de Produto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #15181e;
+        --ink-2: #3a3f49;
+        --ink-3: #6b7180;
+        --canvas: #f3f1eb;
+        --panel: #ffffff;
+        --line: #e0dcd1;
+        --line-2: #cfc9bb;
+        --core: #0f6e56;
+        --growth: #ba7517;
+        --exp: #c2410c;
+        --ads: #1f6fb2;
+        --afil: #3b6d11;
+        --parc: #534ab7;
+        --disp: "Space Grotesk", sans-serif;
+        --body: "Inter", sans-serif;
+        --mono: "IBM Plex Mono", monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: var(--body);
+        overflow: hidden;
+      }
+      .deck {
+        position: relative;
+        height: 100vh;
+        width: 100vw;
+      }
+      .slide {
+        position: absolute;
+        inset: 0;
+        padding: 6vh 7vw;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(14px);
+        transition:
+          opacity 0.5s ease,
+          transform 0.5s ease,
+          visibility 0.5s;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: auto;
+      }
+      .slide.active {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .slide {
+          transition: opacity 0.2s;
+        }
+      }
+
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+      .eyebrow .tick {
+        width: 26px;
+        height: 1px;
+        background: var(--line-2);
+      }
+      .eyebrow b {
+        color: var(--core);
+        font-weight: 600;
+      }
+
+      h1 {
+        font-family: var(--disp);
+        font-weight: 600;
+        font-size: clamp(34px, 6.4vw, 80px);
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-family: var(--disp);
+        font-weight: 600;
+        font-size: clamp(26px, 4vw, 46px);
+        line-height: 1.06;
+        letter-spacing: -0.015em;
+      }
+      h3 {
+        font-family: var(--disp);
+        font-weight: 600;
+        font-size: 19px;
+        letter-spacing: -0.01em;
+      }
+      p.lead {
+        font-size: clamp(16px, 1.9vw, 22px);
+        color: var(--ink-2);
+        line-height: 1.55;
+        max-width: 62ch;
+        margin-top: 18px;
+      }
+      p.body {
+        font-size: 15.5px;
+        color: var(--ink-2);
+        line-height: 1.6;
+      }
+
+      .mono {
+        font-family: var(--mono);
+      }
+      .accent {
+        color: var(--core);
+      }
+      .grad-rule {
+        height: 3px;
+        width: 120px;
+        background: linear-gradient(90deg, var(--core), var(--growth), var(--exp));
+        border-radius: 2px;
+        margin: 26px 0;
+      }
+
+      /* cover */
+      .cover-badge {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        border: 1px solid var(--line-2);
+        border-radius: 100px;
+        padding: 7px 16px;
+        color: var(--ink-2);
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .cover-badge i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--core);
+        display: inline-block;
+      }
+      .cover h1 small {
+        display: block;
+        font-size: 0.34em;
+        font-weight: 500;
+        color: var(--ink-3);
+        letter-spacing: 0;
+        margin-top: 14px;
+        font-family: var(--body);
+      }
+      .alloc {
+        display: flex;
+        height: 46px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        margin-top: 34px;
+        max-width: 720px;
+      }
+      .alloc span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        transition: flex-basis 1.1s cubic-bezier(0.2, 0.7, 0.2, 1);
+        flex-basis: 0;
+      }
+      .deck.ready .alloc span.c {
+        flex-basis: 70%;
+      }
+      .deck.ready .alloc span.g {
+        flex-basis: 20%;
+      }
+      .deck.ready .alloc span.e {
+        flex-basis: 10%;
+      }
+      .alloc .c {
+        background: var(--core);
+      }
+      .alloc .g {
+        background: var(--growth);
+      }
+      .alloc .e {
+        background: var(--exp);
+      }
+      .alloc-key {
+        display: flex;
+        gap: 24px;
+        margin-top: 14px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink-3);
+        flex-wrap: wrap;
+      }
+      .alloc-key b {
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      .alloc-key i {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        display: inline-block;
+        margin-right: 7px;
+        vertical-align: middle;
+      }
+
+      /* journey */
+      .flow {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        margin-top: 34px;
+        flex-wrap: wrap;
+      }
+      .flow .step {
+        flex: 1;
+        min-width: 150px;
+        padding: 20px 22px;
+        border-left: 2px solid var(--line);
+        position: relative;
+      }
+      .flow .step:first-child {
+        border-left: 2px solid var(--core);
+      }
+      .flow .step .n {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-3);
+        letter-spacing: 0.1em;
+      }
+      .flow .step h3 {
+        margin: 10px 0 6px;
+        font-size: 16px;
+      }
+      .flow .step p {
+        font-size: 13px;
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+      .flow .step.cap h3 {
+        color: var(--core);
+      }
+
+      /* generic two-col feature */
+      .two {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 48px;
+        margin-top: 30px;
+        align-items: start;
+      }
+      @media (max-width: 880px) {
+        .two {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+      }
+      .build {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 26px 28px;
+      }
+      .build .cap {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: 16px;
+      }
+      .build ul {
+        list-style: none;
+      }
+      .build li {
+        font-size: 14px;
+        color: var(--ink-2);
+        line-height: 1.5;
+        padding: 9px 0 9px 26px;
+        position: relative;
+        border-top: 1px solid var(--line);
+      }
+      .build li:first-child {
+        border-top: none;
+      }
+      .build li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 15px;
+        width: 11px;
+        height: 11px;
+        border: 2px solid var(--core);
+        border-radius: 3px;
+      }
+      .build li b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .entities {
+        margin-top: 16px;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink-3);
+      }
+      .entities span {
+        display: inline-block;
+        border: 1px solid var(--line-2);
+        border-radius: 5px;
+        padding: 3px 8px;
+        margin: 4px 6px 0 0;
+        color: var(--ink-2);
+      }
+
+      /* GOM pillars */
+      .pillars {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-top: 30px;
+      }
+      @media (max-width: 880px) {
+        .pillars {
+          grid-template-columns: 1fr;
+        }
+      }
+      .pcard {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 22px;
+        background: var(--panel);
+        border-top: 4px solid;
+      }
+      .pcard.ads {
+        border-top-color: var(--ads);
+      }
+      .pcard.afil {
+        border-top-color: var(--afil);
+      }
+      .pcard.parc {
+        border-top-color: var(--parc);
+      }
+      .pcard .tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .pcard.ads .tag {
+        color: var(--ads);
+      }
+      .pcard.afil .tag {
+        color: var(--afil);
+      }
+      .pcard.parc .tag {
+        color: var(--parc);
+      }
+      .pcard h3 {
+        margin: 8px 0 12px;
+      }
+      .pcard ul {
+        list-style: none;
+        font-size: 13px;
+        color: var(--ink-2);
+        line-height: 1.7;
+      }
+      .pcard .count {
+        font-family: var(--disp);
+        font-size: 30px;
+        font-weight: 600;
+        margin-top: 14px;
+      }
+      .attrs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 26px;
+      }
+      .attrs .a {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink-2);
+        border: 1px solid var(--line-2);
+        border-radius: 6px;
+        padding: 6px 11px;
+      }
+      .attrs .a b {
+        color: var(--ink);
+      }
+
+      /* stack grid */
+      .stack {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-top: 32px;
+      }
+      @media (max-width: 880px) {
+        .stack {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .scell {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px;
+        background: var(--panel);
+      }
+      .scell .k {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .scell .v {
+        font-family: var(--disp);
+        font-weight: 600;
+        font-size: 18px;
+        margin-top: 8px;
+      }
+      .scell p {
+        font-size: 12.5px;
+        color: var(--ink-2);
+        margin-top: 6px;
+        line-height: 1.45;
+      }
+
+      /* phases */
+      .phases {
+        margin-top: 26px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .ph {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 24px;
+        padding: 18px 0;
+        border-top: 1px solid var(--line);
+        align-items: baseline;
+      }
+      .ph:last-child {
+        border-bottom: 1px solid var(--line);
+      }
+      .ph .pn {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--core);
+        letter-spacing: 0.08em;
+      }
+      .ph .pn b {
+        display: block;
+        font-family: var(--disp);
+        font-size: 20px;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+        margin-top: 4px;
+      }
+      .ph h3 {
+        font-size: 16px;
+        margin-bottom: 6px;
+      }
+      .ph p {
+        font-size: 13.5px;
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+      .ph .sub {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--ink-3);
+        margin-top: 8px;
+      }
+
+      .closing h2 em {
+        font-style: normal;
+        color: var(--core);
+      }
+      .next {
+        display: flex;
+        gap: 14px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+      }
+      .next .nx {
+        border: 1px solid var(--line-2);
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 13.5px;
+        color: var(--ink-2);
+        background: var(--panel);
+      }
+      .next .nx b {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--core);
+        display: block;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+
+      /* nav */
+      .nav {
+        position: fixed;
+        bottom: 22px;
+        right: 26px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        z-index: 30;
+      }
+      .nav button {
+        font-family: var(--mono);
+        font-size: 13px;
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        border: 1px solid var(--line-2);
+        background: var(--panel);
+        color: var(--ink);
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .nav button:hover {
+        border-color: var(--core);
+        color: var(--core);
+      }
+      .nav button:focus-visible {
+        outline: 2px solid var(--core);
+        outline-offset: 2px;
+      }
+      .counter {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--ink-3);
+        min-width: 54px;
+        text-align: center;
+      }
+      .progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: var(--core);
+        z-index: 30;
+        transition: width 0.4s ease;
+      }
+      .brandmark {
+        position: fixed;
+        top: 24px;
+        left: 7vw;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        color: var(--ink-3);
+        z-index: 20;
+      }
+      .brandmark b {
+        color: var(--ink);
+      }
+      .hint {
+        position: fixed;
+        bottom: 26px;
+        left: 7vw;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-3);
+        z-index: 20;
+      }
+      @media (max-width: 880px) {
+        .hint {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress" id="bar"></div>
+    <div class="brandmark"><b>EA360</b> · briefing de engenharia</div>
+
+    <div class="deck" id="deck">
+      <!-- 1 COVER -->
+      <section class="slide cover active">
+        <span class="cover-badge"><i></i>Entrepreneur Ads 360</span>
+        <h1 style="margin-top: 26px">
+          Alocação de<br />monetização<br />como portfólio.<small
+            >Um briefing de produto para o time de engenharia — o que vamos construir, módulo por
+            módulo.</small
+          >
+        </h1>
+        <div class="alloc" aria-hidden="true">
+          <span class="c">núcleo 70%</span><span class="g">cresc. 20%</span
+          ><span class="e">exp. 10%</span>
+        </div>
+        <div class="alloc-key">
+          <span><i style="background: var(--core)"></i><b>Núcleo</b> — canais provados</span>
+          <span><i style="background: var(--growth)"></i><b>Crescimento</b> — apostas médias</span>
+          <span><i style="background: var(--exp)"></i><b>Experimento</b> — testes com corte</span>
+        </div>
+      </section>
+
+      <!-- 2 JOURNEY -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>01</b> · de onde isso veio</div>
+        <h2>A ideia nasceu de uma pergunta sobre WhatsApp — e cresceu.</h2>
+        <p class="lead">
+          O insight que sustenta o produto:
+          <span class="accent">conformidade não é limite, é o produto.</span> O sistema pega quem ia
+          fazer marketing no improviso e o conduz pro caminho legítimo, que por acaso rende mais.
+        </p>
+        <div class="flow">
+          <div class="step cap">
+            <div class="n">PONTO DE PARTIDA</div>
+            <h3>Marketing no WhatsApp</h3>
+            <p>Vontade de captar leads sem tomar ban.</p>
+          </div>
+          <div class="step">
+            <div class="n">VIRADA</div>
+            <h3>Funil inbound ético</h3>
+            <p>O cliente te procura via anúncio; opt-in real, janelas grátis.</p>
+          </div>
+          <div class="step">
+            <div class="n">PRODUTO 1</div>
+            <h3>WhatsApp Ads Advisor</h3>
+            <p>Desenha o funil, gera copy, blinda contra ban.</p>
+          </div>
+          <div class="step">
+            <div class="n">PRODUTO 360</div>
+            <h3>Entrepreneur Ads 360</h3>
+            <p>O WAA vira um nó dentro de um alocador de portfólio inteiro.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 PROBLEM -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>02</b> · o problema</div>
+        <h2>O empreendedor está perdido no cardápio de canais.</h2>
+        <p class="lead">
+          Existem dezenas de formas de gerar receita — ads, afiliações, parcerias. A maioria decide
+          no achismo, copia o concorrente, concentra tudo numa plataforma e descobre o risco tarde
+          demais, quando vem o ban, o bloqueio ou a verba que não voltou.
+        </p>
+        <div class="grad-rule"></div>
+        <p class="body mono" style="font-size: 13.5px; max-width: 70ch">
+          → falta diagnóstico do momento · → falta saber o que cada canal exige e devolve · → falta
+          uma lógica de alocação · → falta proteção contra dependência de plataforma.
+        </p>
+      </section>
+
+      <!-- 4 THESIS -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>03</b> · a tese</div>
+        <h2>Canais de receita são ativos.<br />Trate como um portfólio.</h2>
+        <p class="lead">
+          A analogia certa não é "agência de tráfego" — é "consultor de investimentos". O EA360
+          entende teu momento, teu apetite a risco e tua filosofia, e monta uma carteira
+          diversificada e coerente de canais. Não "faça tudo": faça
+          <span class="accent">o que cabe agora</span>.
+        </p>
+        <div class="attrs">
+          <span class="a"><b>Coerência</b> — a mistura reflete quem você é</span>
+          <span class="a"><b>Assertividade</b> — alocação por dado, não por palpite</span>
+          <span class="a"><b>Mitigação</b> — diversificação + guardrails + corte</span>
+        </div>
+      </section>
+
+      <!-- 5 ARCHITECTURE -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>04</b> · arquitetura</div>
+        <h2>Seis módulos, um ciclo contínuo.</h2>
+        <div class="flow" style="margin-top: 30px">
+          <div class="step cap">
+            <div class="n">ENTRADA</div>
+            <h3>Entrevista 360</h3>
+            <p>Objetivos, metas, filosofia, momento.</p>
+          </div>
+          <div class="step">
+            <div class="n">BASE</div>
+            <h3>GOM</h3>
+            <p>O universo de canais, pontuado.</p>
+          </div>
+          <div class="step">
+            <div class="n">MATCH</div>
+            <h3>Menu personalizado</h3>
+            <p>O que cabe no momento.</p>
+          </div>
+          <div class="step">
+            <div class="n">ALOCA</div>
+            <h3>Alocador 70/20/10</h3>
+            <p>Distribui por risco.</p>
+          </div>
+          <div class="step">
+            <div class="n">PROTEGE</div>
+            <h3>Mitigador de risco</h3>
+            <p>Limites e anti-dependência.</p>
+          </div>
+          <div class="step">
+            <div class="n">MEDE</div>
+            <h3>Painel 360</h3>
+            <p>Reavalia e rebalanceia.</p>
+          </div>
+        </div>
+        <p class="body mono" style="font-size: 12.5px; margin-top: 24px; color: var(--ink-3)">
+          o Painel realimenta a Entrevista — o 360 não é tiro único, é loop.
+        </p>
+      </section>
+
+      <!-- 6 ENTREVISTA -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>05</b> · feature · entrada</div>
+        <h2>Entrevista 360</h2>
+        <div class="two">
+          <div>
+            <p class="lead" style="margin-top: 6px">
+              Entrevista conversacional que captura quatro camadas e produz um
+              <b>perfil de monetização</b> estruturado — o insumo de tudo.
+            </p>
+            <div class="entities">
+              <span>objetivos & metas</span><span>filosofia & valores</span
+              ><span>momento (caixa, margem, LTV/CAC)</span
+              ><span>recursos (verba, time, ativos)</span>
+            </div>
+          </div>
+          <div class="build">
+            <div class="cap">o que construir</div>
+            <ul>
+              <li><b>UI de entrevista</b> guiada, conversacional, com salvamento por etapa.</li>
+              <li><b>Motor de perguntas</b> ramificadas (LLM) que se adaptam às respostas.</li>
+              <li><b>Gerador de perfil</b> que normaliza respostas num objeto consultável.</li>
+              <li><b>Filtro de filosofia</b> que marca canais a excluir por princípio.</li>
+            </ul>
+            <div class="entities">
+              <span>interviews</span><span>interview_answers</span
+              ><span>monetization_profiles</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7 GOM -->
+      <section class="slide">
+        <div class="eyebrow">
+          <span class="tick"></span><b>06</b> · feature · base ·
+          <span style="color: var(--core)">elemento central</span>
+        </div>
+        <h2>GOM — Guia de Opções de Monetização</h2>
+        <p class="lead" style="max-width: 74ch">
+          Coloca o empresário dentro do mundo inteiro de opções, com informação precisa de como cada
+          canal se comporta. É a base de ativos que o alocador consome.
+        </p>
+        <div class="pillars">
+          <div class="pcard ads">
+            <div class="tag">Pilar 1</div>
+            <h3>Ads</h3>
+            <ul>
+              <li>Comprando mídia</li>
+              <li>Vendendo mídia (publisher)</li>
+            </ul>
+            <div class="count" style="color: var(--ads)">20</div>
+            <div class="mono" style="font-size: 11px; color: var(--ink-3)">canais</div>
+          </div>
+          <div class="pcard afil">
+            <div class="tag">Pilar 2</div>
+            <h3>Afiliações</h3>
+            <ul>
+              <li>Sendo afiliado</li>
+              <li>Tendo seu programa</li>
+            </ul>
+            <div class="count" style="color: var(--afil)">13</div>
+            <div class="mono" style="font-size: 11px; color: var(--ink-3)">canais</div>
+          </div>
+          <div class="pcard parc">
+            <div class="tag">Pilar 3</div>
+            <h3>Parcerias</h3>
+            <ul>
+              <li>Audiência · distribuição</li>
+              <li>Estruturais & produto</li>
+            </ul>
+            <div class="count" style="color: var(--parc)">17</div>
+            <div class="mono" style="font-size: 11px; color: var(--ink-3)">canais</div>
+          </div>
+        </div>
+        <div class="attrs">
+          <span class="a"><b>Custo</b> CPC/CPM/CPA/comissão/esforço</span>
+          <span class="a"><b>Payback</b> imediato → longo</span>
+          <span class="a"><b>Controle</b> alto → baixo</span>
+          <span class="a"><b>Risco</b> nota 1–5</span>
+          <span class="a"><b>Escala</b> baixa → muito alta</span>
+        </div>
+      </section>
+
+      <!-- 8 MENU -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>07</b> · feature · match</div>
+        <h2>Menu personalizado</h2>
+        <div class="two">
+          <div>
+            <p class="lead" style="margin-top: 6px">
+              Cruza o perfil com o GOM e devolve um punhado de opções rankeadas — não um catálogo.
+              Cada item traz gasto estimado, faixa de retorno, payback, nota de risco e
+              <b>o porquê de caber agora</b> (e quais evitar, e por quê).
+            </p>
+          </div>
+          <div class="build">
+            <div class="cap">o que construir</div>
+            <ul>
+              <li>
+                <b>Função de matchmaking</b> (SQL/edge) que pontua e filtra canais por perfil.
+              </li>
+              <li><b>Camada de rationale</b> (LLM) que escreve o "porquê cabe / porquê evitar".</li>
+              <li><b>UI de menu</b> com cards de canal, faróis e ordenação por critério.</li>
+            </ul>
+            <div class="entities">
+              <span>recommendations</span><span>recommendation_items</span
+              ><span>fn_match_channels()</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9 ALOCADOR -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>08</b> · feature · aloca</div>
+        <h2>Alocador de portfólio</h2>
+        <p class="lead" style="max-width: 70ch">
+          Trata os canais escolhidos como carteira e distribui a verba em três faixas de risco. Você
+          mede gasto por faixa e nunca aposta a casa numa coisa só.
+        </p>
+        <div class="alloc" aria-hidden="true" style="margin-top: 26px">
+          <span class="c" style="flex-basis: 70%">núcleo · provado</span
+          ><span class="g" style="flex-basis: 20%">crescimento</span
+          ><span class="e" style="flex-basis: 10%">experimento</span>
+        </div>
+        <div class="two" style="margin-top: 24px">
+          <div class="build">
+            <div class="cap">o que construir</div>
+            <ul>
+              <li><b>Engine de alocação</b> 70/20/10 (parametrizável por perfil de risco).</li>
+              <li><b>Simulador de cenário</b> — "se eu puser X aqui vs. ali".</li>
+              <li><b>UI de carteira</b> com sliders e leitura de gasto/retorno por faixa.</li>
+            </ul>
+            <div class="entities">
+              <span>allocations</span><span>allocation_items</span><span>experiments</span>
+            </div>
+          </div>
+          <div class="build">
+            <div class="cap">regra de diversificação</div>
+            <ul>
+              <li><b>Teto por canal</b> — nenhum canal único acima do limite.</li>
+              <li><b>Mínimo entre pilares</b> — não concentrar num só pilar.</li>
+              <li><b>Critério de corte</b> — todo experimento nasce com kill-criteria.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10 RISCO -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>09</b> · feature · protege</div>
+        <h2>Mitigador de risco</h2>
+        <div class="two">
+          <div>
+            <p class="lead" style="margin-top: 6px">
+              A peça que fala direto com a dor de quem já apanhou de ban e bloqueio. Sinaliza
+              concentração, modela o downside —
+              <span class="mono" style="font-size: 0.85em"
+                >"se a Meta te bane amanhã, quanto evapora?"</span
+              >
+              — e impõe guardrails.
+            </p>
+          </div>
+          <div class="build">
+            <div class="cap">o que construir</div>
+            <ul>
+              <li><b>Detector de concentração</b> por plataforma e por parceiro.</li>
+              <li><b>Modelo de downside</b> por canal (cenário de perda).</li>
+              <li><b>Guardrails configuráveis</b> + farol vermelho/amarelo/verde.</li>
+            </ul>
+            <div class="entities"><span>risk_flags</span><span>fn_concentration_check()</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11 PAINEL + EXECUTORES -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>10</b> · feature · mede + executa</div>
+        <h2>Painel 360 + nós executores</h2>
+        <div class="two">
+          <div class="build">
+            <div class="cap">Painel 360 — o loop</div>
+            <ul>
+              <li><b>Real vs. projetado</b> por canal (ROAS, CPA, payback, contribuição).</li>
+              <li><b>Rebalanceamento</b> conforme o momento muda — aposta vira núcleo.</li>
+              <li><b>Realimenta</b> a Entrevista: reavaliação contínua.</li>
+            </ul>
+            <div class="entities"><span>channel_metrics</span><span>allocation_reviews</span></div>
+          </div>
+          <div class="build">
+            <div class="cap">WhatsApp Ads Advisor — nó executor</div>
+            <ul>
+              <li><b>Arquiteto de funil</b> + <b>Forja de copy</b> (templates aprováveis).</li>
+              <li><b>Blindagem</b> — pre-flight anti-ban (persona, categoria, escape humano).</li>
+              <li><b>Oráculo</b> — Q&A RAG sobre regras atuais da Meta, sempre fresco.</li>
+            </ul>
+            <div class="entities">
+              <span>oracle_documents</span><span>compliance_checks</span><span>n8n export</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12 CONSTITUICAO -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>11</b> · DNA</div>
+        <h2>
+          A constituição: o que o sistema
+          <em style="color: var(--exp); font-style: normal">não</em> deixa fazer.
+        </h2>
+        <p class="lead">
+          É o fosso competitivo. Regras duras que o app segue e impõe ao usuário — e é o que torna
+          confiável botar a conta de anúncio na mão dele.
+        </p>
+        <div class="attrs" style="margin-top: 22px">
+          <span class="a">sem persona falsa fingindo ser humano</span>
+          <span class="a">sem scraping de grupo</span>
+          <span class="a">sem disparo frio pra não-contato</span>
+          <span class="a">sem opt-in fabricado</span>
+          <span class="a">template sempre na categoria certa</span>
+          <span class="a">bot identificado + escape pra humano</span>
+        </div>
+      </section>
+
+      <!-- 13 STACK -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>12</b> · stack técnica</div>
+        <h2>O que vamos usar.</h2>
+        <div class="stack">
+          <div class="scell">
+            <div class="k">Front</div>
+            <div class="v">Next.js + React</div>
+            <p>App Router, Server Actions, RSC.</p>
+          </div>
+          <div class="scell">
+            <div class="k">Estilo</div>
+            <div class="v">Tailwind CSS</div>
+            <p>Design system, tokens, dark/light.</p>
+          </div>
+          <div class="scell">
+            <div class="k">Backend / DB</div>
+            <div class="v">Supabase</div>
+            <p>Postgres, Auth, RLS, Edge Functions, pgvector.</p>
+          </div>
+          <div class="scell">
+            <div class="k">IA</div>
+            <div class="v">LLM + Embeddings</div>
+            <p>Entrevista, Forja de copy, Oráculo (RAG).</p>
+          </div>
+          <div class="scell">
+            <div class="k">Frescor do Oráculo</div>
+            <div class="v">Firecrawl</div>
+            <p>Re-scrape das políticas da Meta.</p>
+          </div>
+          <div class="scell">
+            <div class="k">Orquestração</div>
+            <div class="v">n8n</div>
+            <p>Export do funil + automações.</p>
+          </div>
+          <div class="scell">
+            <div class="k">Execução de ads</div>
+            <div class="v">Meta + WhatsApp API</div>
+            <p>Marketing API, Cloud API, webhooks.</p>
+          </div>
+          <div class="scell">
+            <div class="k">Observabilidade</div>
+            <div class="v">Sentry + Analytics</div>
+            <p>Erros e métricas de produto.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 14 PHASES -->
+      <section class="slide">
+        <div class="eyebrow"><span class="tick"></span><b>13</b> · execução</div>
+        <h2>Quatro fases.</h2>
+        <div class="phases">
+          <div class="ph">
+            <div class="pn">FASE<b>F1</b></div>
+            <div>
+              <h3>Fundação + GOM</h3>
+              <p>Auth, schema, RLS, seed do GOM, leitura do guia. Base de dados navegável.</p>
+              <div class="sub">
+                F1.1 infra & auth · F1.2 schema & migração · F1.3 seed GOM · F1.4 GOM browser
+              </div>
+            </div>
+          </div>
+          <div class="ph">
+            <div class="pn">FASE<b>F2</b></div>
+            <div>
+              <h3>Diagnóstico → Menu</h3>
+              <p>Entrevista 360, perfil de monetização, matchmaking e menu personalizado.</p>
+              <div class="sub">F2.1 entrevista · F2.2 perfil · F2.3 fn_match · F2.4 UI menu</div>
+            </div>
+          </div>
+          <div class="ph">
+            <div class="pn">FASE<b>F3</b></div>
+            <div>
+              <h3>Alocação + Risco + Painel</h3>
+              <p>Alocador 70/20/10, simulador, mitigador de risco e painel de reavaliação.</p>
+              <div class="sub">F3.1 alocador · F3.2 guardrails · F3.3 painel · F3.4 loop</div>
+            </div>
+          </div>
+          <div class="ph">
+            <div class="pn">FASE<b>F4</b></div>
+            <div>
+              <h3>Executor WhatsApp + Oráculo</h3>
+              <p>WhatsApp Ads Advisor, Blindagem, Oráculo RAG e pipeline de frescor.</p>
+              <div class="sub">
+                F4.1 forja & blindagem · F4.2 oráculo RAG · F4.3 firecrawl · F4.4 export n8n
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 15 CLOSING -->
+      <section class="slide closing">
+        <div class="eyebrow"><span class="tick"></span><b>14</b> · próximos passos</div>
+        <h2>Construir o <em>consultor</em>,<br />não mais um disparador.</h2>
+        <p class="lead">
+          O mercado tem ferramentas de envio. O EA360 é a camada de julgamento acima delas:
+          diagnostica, recomenda, aloca, protege e mede — com conformidade no DNA.
+        </p>
+        <div class="next">
+          <div class="nx"><b>Doc</b>conceitoEA360.md</div>
+          <div class="nx"><b>Doc</b>EA360-PRD.md</div>
+          <div class="nx"><b>SQL</b>migração + seed do GOM</div>
+          <div class="nx"><b>Config</b>.env.exemplo</div>
+        </div>
+      </section>
+    </div>
+
+    <div class="nav">
+      <button id="prev" aria-label="Slide anterior">←</button>
+      <span class="counter" id="counter">01 / 15</span>
+      <button id="next" aria-label="Próximo slide">→</button>
+    </div>
+    <div class="hint">← → para navegar · F para tela cheia</div>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const deck = document.getElementById("deck");
+      const bar = document.getElementById("bar");
+      const counter = document.getElementById("counter");
+      let i = 0;
+      const pad = (n) => String(n).padStart(2, "0");
+      function show(n) {
+        i = Math.max(0, Math.min(slides.length - 1, n));
+        slides.forEach((s, k) => s.classList.toggle("active", k === i));
+        bar.style.width = ((i + 1) / slides.length) * 100 + "%";
+        counter.textContent = pad(i + 1) + " / " + pad(slides.length);
+      }
+      document.getElementById("next").onclick = () => show(i + 1);
+      document.getElementById("prev").onclick = () => show(i - 1);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+          e.preventDefault();
+          show(i + 1);
+        }
+        if (e.key === "ArrowLeft" || e.key === "PageUp") {
+          e.preventDefault();
+          show(i - 1);
+        }
+        if (e.key === "Home") show(0);
+        if (e.key === "End") show(slides.length - 1);
+        if (e.key === "f" || e.key === "F") {
+          if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+          else document.exitFullscreen?.();
+        }
+      });
+      let sx = null;
+      deck.addEventListener("touchstart", (e) => (sx = e.touches[0].clientX), { passive: true });
+      deck.addEventListener(
+        "touchend",
+        (e) => {
+          if (sx === null) return;
+          const dx = e.changedTouches[0].clientX - sx;
+          if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1));
+          sx = null;
+        },
+        { passive: true }
+      );
+      requestAnimationFrame(() => requestAnimationFrame(() => deck.classList.add("ready")));
+      show(0);
+    </script>
+  </body>
+</html>

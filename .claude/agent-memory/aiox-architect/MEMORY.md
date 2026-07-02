@@ -1,0 +1,1 @@
+- [EA360 Stack](project_ea360-stack.md) — EA360 app stack/deps baseline; root package.json vs .aiox-core, Tailwind v4 deviation, quality gates

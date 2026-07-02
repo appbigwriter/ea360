@@ -1,0 +1,1 @@
+- [EA360 + Launch Studio PRO](project_launch_studio_pro.md) — EA360: 51 MVP stories (9 épicos, 9.1–9.5 criadas 2026-06-26); Launch Studio PRO: 22 stories 2026-06-25; ambos Next.js 15 + Supabase

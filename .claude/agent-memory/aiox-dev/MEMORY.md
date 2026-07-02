@@ -1,0 +1,2 @@
+- [Build env guard](project_build_env_guard.md) — `npm run build` needs Supabase env vars; use placeholders to validate, env failures are environmental
+- [Supabase migrations](project_supabase_migrations.md) — migration naming/GATE conventions; Supabase CLI absent in agent env, db push deferred to quality gate
