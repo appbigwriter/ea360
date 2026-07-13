@@ -32,6 +32,8 @@
 -- Migração ADITIVA e IDEMPOTENTE (mesmo padrão das migrações 0008/0014).
 -- ============================================================================
 
+drop function if exists public.fn_concentration_check(uuid);
+
 create or replace function public.fn_concentration_check(allocation_id uuid)
 returns table (
   entity_type       text,

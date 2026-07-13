@@ -62,6 +62,12 @@ create table if not exists public.allocations (
   updated_at        timestamptz not null default now()
 );
 
+alter table public.allocations add column if not exists recommendation_id uuid references public.recommendations (id) on delete set null;
+alter table public.allocations add column if not exists total_budget numeric not null default 0 check (total_budget >= 0);
+alter table public.allocations add column if not exists status allocation_status not null default 'draft';
+alter table public.allocations add column if not exists risk_band_ratios jsonb not null default '{"core": 70, "growth": 20, "experiment": 10}'::jsonb;
+
+
 -- ----------------------------------------------------------------------------
 -- 3. AC2 — allocation_items.
 -- ----------------------------------------------------------------------------
@@ -75,6 +81,11 @@ create table if not exists public.allocation_items (
   ceiling_pct   numeric check (ceiling_pct is null or (ceiling_pct >= 0 and ceiling_pct <= 100)),
   created_at    timestamptz not null default now()
 );
+
+alter table public.allocation_items add column if not exists percentage numeric not null default 0 check (percentage >= 0 and percentage <= 100);
+alter table public.allocation_items add column if not exists risk_band risk_band not null default 'core';
+alter table public.allocation_items add column if not exists ceiling_pct numeric check (ceiling_pct is null or (ceiling_pct >= 0 and ceiling_pct <= 100));
+alter table public.allocation_items add column if not exists created_at timestamptz not null default now();
 
 -- ----------------------------------------------------------------------------
 -- 4. AC3 — experiments. kill_criteria NOT NULL (todo experimento tem kill-criteria — R4).
@@ -91,6 +102,14 @@ create table if not exists public.experiments (
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
 );
+
+alter table public.experiments add column if not exists allocation_item_id uuid references public.allocation_items (id) on delete cascade;
+alter table public.experiments add column if not exists kill_criteria text not null default '';
+alter table public.experiments add column if not exists status experiment_status not null default 'active';
+alter table public.experiments add column if not exists target_metric text;
+alter table public.experiments add column if not exists target_value numeric;
+alter table public.experiments add column if not exists deadline date;
+alter table public.experiments add column if not exists updated_at timestamptz not null default now();
 
 -- ----------------------------------------------------------------------------
 -- 5. Índices nas FKs (consistente com o padrão das demais migrações).

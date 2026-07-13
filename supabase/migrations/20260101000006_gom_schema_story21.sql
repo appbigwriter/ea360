@@ -33,6 +33,7 @@
 -- ----------------------------------------------------------------------------
 alter table public.gom_pillars    add column if not exists created_at timestamptz not null default now();
 alter table public.gom_categories add column if not exists created_at timestamptz not null default now();
+alter table public.gom_channels   add column if not exists description text;
 
 -- ----------------------------------------------------------------------------
 -- 2. AC3 — nomes de score canônicos como colunas geradas (1..5 preservado)
