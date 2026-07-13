@@ -24,54 +24,84 @@ import {
 
 export type StartInterviewResult = { ok: true; interviewId: string } | { ok: false; error: string };
 
+export type DiagnosticSummary = {
+  interviewId: string;
+  businessName: string;
+  status: string;
+  currentLayer: number;
+  updatedAt: string;
+};
+
+export type ListDiagnosticsResult =
+  | { ok: true; diagnostics: DiagnosticSummary[] }
+  | { ok: false; error: string };
+
+export type ResumeInterviewResult =
+  | { ok: true; interviewId: string }
+  | { ok: false; error: string };
+
 /**
- * Garante que o usuário autenticado tenha um `business`, retornando seu id.
- * `interviews` exige `business_id` (FK), e o RLS isola por dono via
- * `owns_business()`. Para o MVP da entrevista, criamos um negócio mínimo se o
- * usuário ainda não tiver nenhum.
+ * Lista todos os diagnósticos (entrevistas) do usuário logado, junto com o nome do negócio.
  */
-async function getOrCreateBusinessId(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string
-): Promise<string> {
-  const { data: existing, error: selectError } = await supabase
-    .from("businesses")
-    .select("id")
-    .eq("owner_id", userId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+export async function listUserDiagnostics(): Promise<ListDiagnosticsResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (selectError) {
-    throw new Error(`[interview] Falha ao buscar negócio: ${selectError.message}`);
+  if (userError || !user) {
+    return { ok: false, error: "Sessão expirada. Faça login novamente." };
   }
 
-  if (existing?.id) {
-    return existing.id;
+  try {
+    const { data, error } = await supabase
+      .from("interviews")
+      .select(`
+        id,
+        status,
+        current_layer,
+        updated_at,
+        businesses ( name )
+      `)
+      .order("updated_at", { ascending: false });
+
+    if (error) throw error;
+
+    const diagnostics: DiagnosticSummary[] = (data || []).map((row) => ({
+      interviewId: row.id,
+      businessName: (row.businesses as { name?: string } | null)?.name ?? "Negócio",
+      status: row.status,
+      currentLayer: row.current_layer ?? 1,
+      updatedAt: row.updated_at,
+    }));
+
+    return { ok: true, diagnostics };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Erro ao listar diagnósticos.",
+    };
   }
-
-  const { data: created, error: insertError } = await supabase
-    .from("businesses")
-    .insert({ owner_id: userId, name: "Meu negócio" })
-    .select("id")
-    .single();
-
-  if (insertError || !created?.id) {
-    throw new Error(
-      `[interview] Falha ao criar negócio: ${insertError?.message ?? "desconhecido"}`
-    );
-  }
-
-  return created.id;
 }
 
 /**
- * Inicia uma nova entrevista (AC8): cria registro em `interviews` com
- * `status = 'em_andamento'`, `current_layer = 1` e `started_at = now()`.
- * Reaproveita uma entrevista já em andamento do mesmo negócio, se existir,
- * para não acumular registros órfãos a cada montagem da UI.
+ * Retoma uma entrevista existente (valida posse antes).
  */
-export async function startInterview(): Promise<StartInterviewResult> {
+export async function resumeInterview(interviewId: string): Promise<ResumeInterviewResult> {
+  const supabase = await createClient();
+  const owned = await assertInterviewOwnership(supabase, interviewId);
+  if (!owned) {
+    return { ok: false, error: "Diagnóstico não encontrado ou sem permissão." };
+  }
+  return { ok: true, interviewId };
+}
+
+/**
+ * Inicia uma nova entrevista (AC8).
+ * Cria um novo negócio com o nome informado e uma nova entrevista associada.
+ */
+export async function startInterview(input?: { businessName?: string }): Promise<StartInterviewResult> {
   const supabase = await createClient();
 
   const {
@@ -84,25 +114,25 @@ export async function startInterview(): Promise<StartInterviewResult> {
   }
 
   try {
-    const businessId = await getOrCreateBusinessId(supabase, user.id);
+    const bName = input?.businessName?.trim() || "Meu negócio";
 
-    const { data: ongoing, error: ongoingError } = await supabase
-      .from("interviews")
+    // Cria novo negócio para este diagnóstico
+    const { data: createdBusiness, error: insertBizError } = await supabase
+      .from("businesses")
+      .insert({ owner_id: user.id, name: bName })
       .select("id")
-      .eq("business_id", businessId)
-      .eq("status", "em_andamento")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .single();
 
-    if (ongoingError) {
-      return { ok: false, error: ongoingError.message };
+    if (insertBizError || !createdBusiness?.id) {
+      return {
+        ok: false,
+        error: insertBizError?.message ?? "Falha ao criar negócio.",
+      };
     }
 
-    if (ongoing?.id) {
-      return { ok: true, interviewId: ongoing.id };
-    }
+    const businessId = createdBusiness.id;
 
+    // Cria a nova entrevista
     const { data: created, error: insertError } = await supabase
       .from("interviews")
       .insert({

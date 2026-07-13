@@ -3,8 +3,6 @@
 # Environment & Secrets (AIOX)
 .env
 .env.local
-.env.example
-.env.*
 .env.*.local
 *.key
 *.pem

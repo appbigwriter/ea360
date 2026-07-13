@@ -9,6 +9,9 @@ import {
   generateFollowUpQuestions,
   completeInterview,
   loadInterviewState,
+  listUserDiagnostics,
+  resumeInterview,
+  type DiagnosticSummary,
 } from "@/app/app/interview/actions";
 import { generateMonetizationProfile } from "@/app/app/profile/actions";
 import { INTERVIEW_LAYERS, type InterviewQuestion } from "@/app/app/interview/types";
@@ -26,7 +29,7 @@ import { INTERVIEW_LAYERS, type InterviewQuestion } from "@/app/app/interview/ty
  * perguntas chegam estáticas (do seed) via props.
  */
 
-type Phase = "starting" | "ready" | "completed" | "error";
+type Phase = "selecting" | "starting" | "ready" | "completed" | "error";
 
 type ConversationalInterviewerProps = {
   questions: InterviewQuestion[];
@@ -34,10 +37,13 @@ type ConversationalInterviewerProps = {
 
 export function ConversationalInterviewer({ questions }: ConversationalInterviewerProps) {
   const router = useRouter();
-  const [phase, setPhase] = useState<Phase>("starting");
+  const [phase, setPhase] = useState<Phase>("selecting");
   const [startError, setStartError] = useState<string | null>(null);
   const [interviewId, setInterviewId] = useState<string | null>(null);
   const [isStarting, startTransition] = useTransition();
+
+  const [diagnostics, setDiagnostics] = useState<DiagnosticSummary[]>([]);
+  const [loadingList, setLoadingList] = useState(true);
 
   const [queue, setQueue] = useState<InterviewQuestion[]>(questions);
   const [index, setIndex] = useState(0);
@@ -51,49 +57,70 @@ export function ConversationalInterviewer({ questions }: ConversationalInterview
   const startedRef = useRef(false);
   const answerFieldId = useId();
 
-  // AC8 (Story 3.2): ao iniciar, cria/reaproveita registro em `interviews`.
-  // Story 3.4 AC2: em seguida carrega o estado salvo e retoma da última
-  // pergunta não respondida. `startedRef` evita disparo duplicado (Strict Mode).
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
 
+    async function loadList() {
+      const result = await listUserDiagnostics();
+      if (result.ok) {
+        setDiagnostics(result.diagnostics);
+      }
+      setLoadingList(false);
+    }
+    loadList();
+  }, []);
+
+  async function resumeOrStart(id: string) {
+    setInterviewId(id);
+    const loaded = await loadInterviewState(id);
+    if (loaded.ok) {
+      if (loaded.state.completed) {
+        setPhase("completed");
+        void generateMonetizationProfile(id).finally(() => {
+          router.push("/app/profile");
+        });
+        return;
+      }
+      const saved = loaded.state.answers;
+      if (Object.keys(saved).length > 0) {
+        setAnswers(saved);
+        const firstUnanswered = questions.findIndex(
+          (q) => !saved[q.id] || saved[q.id].trim().length === 0
+        );
+        setIndex(firstUnanswered === -1 ? questions.length - 1 : firstUnanswered);
+      }
+    }
+    setPhase("ready");
+  }
+
+  async function handleStartNew(businessName: string) {
+    setStartError(null);
+    setPhase("starting");
     startTransition(async () => {
-      const result = await startInterview();
+      const result = await startInterview({ businessName });
       if (!result.ok) {
         setStartError(result.error);
         setPhase("error");
         return;
       }
-
-      setInterviewId(result.interviewId);
-
-      // AC2/AC5: hidrata respostas salvas e posiciona na primeira pergunta sem
-      // resposta. Tolerante: se o carregamento falhar, começa do início.
-      const loaded = await loadInterviewState(result.interviewId);
-      if (loaded.ok) {
-        if (loaded.state.completed) {
-          // Entrevista já concluída: garante o perfil (Story 3.5, AC1) e
-          // redireciona para a visualização (AC5).
-          setPhase("completed");
-          void generateMonetizationProfile(result.interviewId).finally(() => {
-            router.push("/app/profile");
-          });
-          return;
-        }
-        const saved = loaded.state.answers;
-        if (Object.keys(saved).length > 0) {
-          setAnswers(saved);
-          const firstUnanswered = questions.findIndex(
-            (q) => !saved[q.id] || saved[q.id].trim().length === 0
-          );
-          setIndex(firstUnanswered === -1 ? questions.length - 1 : firstUnanswered);
-        }
-      }
-
-      setPhase("ready");
+      await resumeOrStart(result.interviewId);
     });
-  }, [questions, router]);
+  }
+
+  async function handleResume(id: string) {
+    setStartError(null);
+    setPhase("starting");
+    startTransition(async () => {
+      const result = await resumeInterview(id);
+      if (!result.ok) {
+        setStartError(result.error);
+        setPhase("error");
+        return;
+      }
+      await resumeOrStart(result.interviewId);
+    });
+  }
 
   if (phase === "error") {
     return (
@@ -122,6 +149,17 @@ export function ConversationalInterviewer({ questions }: ConversationalInterview
             : "Suas respostas foram salvas. Já mapeamos as quatro camadas do seu negócio."}
         </p>
       </div>
+    );
+  }
+
+  if (phase === "selecting") {
+    return (
+      <SelectionScreen
+        diagnostics={diagnostics}
+        isLoading={loadingList}
+        onStartNew={handleStartNew}
+        onResume={handleResume}
+      />
     );
   }
 
@@ -386,6 +424,116 @@ function LayerProgress({ currentLayer, layerLabel }: { currentLayer: number; lay
             title={`Camada ${layer.number}: ${layer.label}`}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function SelectionScreen({
+  diagnostics,
+  isLoading,
+  onStartNew,
+  onResume,
+}: {
+  diagnostics: DiagnosticSummary[];
+  isLoading: boolean;
+  onStartNew: (name: string) => void;
+  onResume: (id: string) => void;
+}) {
+  const [businessName, setBusinessName] = useState("");
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (businessName.trim().length > 0) {
+      onStartNew(businessName);
+    }
+  }
+
+  return (
+    <div className="space-y-8" data-testid="interview-selection">
+      <div className="rounded-md border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+          Iniciar Novo Diagnóstico
+        </h2>
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          Informe o nome da sua empresa ou projeto para começar.
+        </p>
+        <form onSubmit={handleSubmit} className="mt-4 flex gap-3">
+          <input
+            type="text"
+            required
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+            placeholder="Ex: Minha Empresa"
+            className="flex-1 rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 dark:border-zinc-700 dark:text-zinc-50"
+          />
+          <Button type="submit" disabled={businessName.trim().length === 0}>
+            Iniciar →
+          </Button>
+        </form>
+      </div>
+
+      <div>
+        <h3 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-50">
+          Diagnósticos Anteriores
+        </h3>
+        {isLoading ? (
+          <div className="flex animate-pulse flex-col gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 rounded-md bg-zinc-100 dark:bg-zinc-800/50" />
+            ))}
+          </div>
+        ) : diagnostics.length === 0 ? (
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Nenhum diagnóstico encontrado. Inicie um novo acima.
+          </p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {diagnostics.map((diag) => {
+              const isCompleted = diag.status === "concluida";
+              return (
+                <div
+                  key={diag.interviewId}
+                  className="flex flex-col justify-between rounded-md border border-zinc-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  <div className="mb-4 flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="font-medium text-zinc-900 dark:text-zinc-50 line-clamp-1">
+                        {diag.businessName}
+                      </h4>
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        {new Date(diag.updatedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                        isCompleted
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                          : diag.status === "em_andamento"
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+                          : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      }`}
+                    >
+                      {isCompleted
+                        ? "Concluído"
+                        : diag.status === "em_andamento"
+                        ? "Em andamento"
+                        : "Rascunho"}
+                    </span>
+                  </div>
+                  <Button
+                    variant={isCompleted ? "outline" : "default"}
+                    size="sm"
+                    className="w-full"
+                    onClick={() => onResume(diag.interviewId)}
+                  >
+                    {isCompleted ? "Ver resultado" : "Continuar (Camada " + diag.currentLayer + ")"}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
